@@ -1,7 +1,6 @@
 body {
-    padding-top: 60px;
+    margin-top: 60px;
 }
-
 #week h1 {
     margin-bottom: 0;
 }
@@ -16,7 +15,7 @@ body {
     background: #EEE;
     height: 965px;
     padding: 1px;
-    background: url(../imgs/daybackground.png);
+    /*background: url(../imgs/daybackground.png);*/
     background-position: 0 -1px; 
 }
 

@@ -4,11 +4,10 @@ control = {
     endOfWeek: null,
     page: 1,
     pages: null,
-	
+
 	init: function() {
 		
 		$('#currentaction h1').html('Fetching recent article');
-
 
         //  I know getting the date for today is easy, but I want to know what
         //  the Guardian thinks the date is, and I'll do this by getting the most recent
@@ -55,6 +54,25 @@ control = {
             });
 
         });
+
+
+
+        /* Draw the background dash objects */
+        var x = 0;
+        for (var h = 0; h < 24; ++h) {
+            // x += utils.ease(h,0,10,18,24)*90;
+            x = utils.timetopixel(h*60);
+
+            var todtext = "" + h+ ":00";
+            var elem = $('<span>')
+                .css('position', 'absolute')
+                .css('top', x)
+                .css('border-top', '1px black solid')
+                .css('width', '60px')
+                .html(todtext);
+            $('.fullday').append(elem);
+        }
+        $('.fullday').height(x+15);
 
 	},
 
@@ -108,7 +126,6 @@ control = {
     },
 
     plotVideo: function(json) {
-        console.log(json);
         //  Ok, now we want to get the publish date of each video, same as before...
         var d = json.webPublicationDate.split('T')[0].split('-');
         var dow = new Date(parseInt(d[0],10), parseInt(d[1],10)-1, parseInt(d[2],10));
@@ -119,15 +136,10 @@ control = {
         //  being spot-on)
         d = json.webPublicationDate.split('T')[1].split('Z')[0].split(':');
         var tod = parseInt(d[0]*60,10) + parseInt(d[1],10);
+        var todpos = utils.timetopixel(tod);
+        // for (h = 0; h < tod/60; ++h)
+        //     todpos += utils.ease(h,0,10,18,24)*90;
 
-        var todpos = 0;
-        if (tod > 1200){
-            todpos+=((tod-1200)/4)+(12*60)+(8*15);
-        } else if (tod > 480) {
-            todpos+=(tod-480)+(8*15);
-        } else {
-            todpos=parseInt(tod/4,10);
-        }
         todpos+=15;
 
         //  Now we know the day and the time of day, we can add the thumbnail onto the page
@@ -184,6 +196,20 @@ utils = {
 			console.log(msg);
 		} catch(er) {
 			
-		}
-	}
+       }
+    },
+    sinoid: function(x) { return 3*(x*x) - 2*(x*x*x); },
+    ease: function(x, Start, EaseIn, EaseOut, End) {
+        if (x < EaseIn) return utils.sinoid(x/EaseIn);
+        if (x > EaseOut) return 1.0 - utils.sinoid((x-EaseOut)/(End-EaseOut));
+        return 1.0;
+    },
+    timetopixel: function(t) {
+        var pos = 0;
+        while (t > 0) {
+        pos += utils.ease(t,0,10*60,18*60,24*60)*90;
+        t -= 60;
+        }
+        return pos;
+    }
 };
