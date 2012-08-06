@@ -131,7 +131,11 @@ control = {
         todpos+=15;
 
         //  Now we know the day and the time of day, we can add the thumbnail onto the page
-        var th = $('<div>').addClass('thumbholder').addClass('section_' + json.sectionId).css('top', todpos-12);
+        var th = $('<a>')
+            .addClass('thumbholder')
+            .addClass('section_' + json.sectionId)
+            .css('top', todpos-12)
+            .attr('href', 'http://www.guardian.co.uk/'+json.id);
         var dtime = $('<div>').addClass('time').addClass('tinyfont').html(d[0] + ':' + d[1]);
         var dsection = $('<div>').addClass('sectionname').addClass('tinyfont').html(json.sectionName);
 
