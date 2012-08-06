@@ -108,7 +108,7 @@ control = {
     },
 
     plotVideo: function(json) {
-        
+        console.log(json);
         //  Ok, now we want to get the publish date of each video, same as before...
         var d = json.webPublicationDate.split('T')[0].split('-');
         var dow = new Date(parseInt(d[0],10), parseInt(d[1],10)-1, parseInt(d[2],10));
