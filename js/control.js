@@ -134,7 +134,6 @@ control = {
         var th = $('<div>').addClass('thumbholder').addClass('section_' + json.sectionId).css('top', todpos-12);
         var dtime = $('<div>').addClass('time').addClass('tinyfont').html(d[0] + ':' + d[1]);
         var dsection = $('<div>').addClass('sectionname').addClass('tinyfont').html(json.sectionName);
-        var i = $('<img>').addClass('thumbnail').attr('src', json.fields.thumbnail).attr('title', d[0] + ':' + d[1]);
 
         if (json.tags.length > 0) {
             var dseries = $('<div>').addClass('series').addClass('tinyfont').html('series');
@@ -142,11 +141,17 @@ control = {
         }
 
         th.append(dtime);
-        th.append(i);
+        if ('thumbnail' in json.fields) {
+            var i = $('<img>')
+                .addClass('thumbnail')
+                .attr('src', json.fields.thumbnail)
+                .attr('title', d[0] + ':' + d[1])
+                .attr('style', '');
+            th.append(i);
+        }
         th.append(dsection);
 
         $($('#week .dayholder')[dow.getDay()]).children('.fullday').append(th);
-        i.attr('style', '');
 
 
     },
