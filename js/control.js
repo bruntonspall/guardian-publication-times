@@ -25,13 +25,13 @@ control = {
                 control.endOfWeek = new Date(control.startOfWeek.getTime() + (1000*60*60*24*7));
 
                 //  Stupidly long way to display the week we are currently looking at
-                $('#topfeedback').html(contenttype + ' published in the week ' + control.startOfWeek.toString().split('00:00:00')[0] + ' - ' + new Date(control.endOfWeek.getTime() - 1000).toString().split('23:59:59')[0]);
+                $('#topfeedback').html(filtertag + ' published in the week ' + control.startOfWeek.toString().split('00:00:00')[0] + ' - ' + new Date(control.endOfWeek.getTime() - 1000).toString().split('23:59:59')[0]);
 
                 //  Now add the dates onto the top of each row
                 control.displayDates();
 
                 //  Now grab the video that has been published during that time.
-                control.fetchVideoFeed();
+                control.fetchFeed();
 
             }
         );
@@ -71,17 +71,17 @@ control = {
 
     },
 
-    fetchVideoFeed: function() {
+    fetchFeed: function() {
 
         if (this.pages === null) {
-            $('#currentaction h1').html('Counting ' + contenttype);
+            $('#currentaction h1').html('Counting ' + filtertag);
         } else {
-            $('#currentaction h1').html('Counting ' + contenttype + ' ' + this.page + '/' + this.pages);
+            $('#currentaction h1').html('Counting ' + filtertag + ' ' + this.page + '/' + this.pages);
         }
 
         var fromdate = (control.startOfWeek.getYear() + 1900) + '-' + (control.startOfWeek.getMonth()+1) + '-' + control.startOfWeek.getDate();
         var todate = (control.endOfWeek.getYear() + 1900) + '-' + (control.endOfWeek.getMonth()+1) + '-' + control.endOfWeek.getDate();
-        $.getJSON('http://content.guardianapis.com/search?page=' + control.page + '&tag=type/' + contenttype + '&from-date=' + fromdate + '&to-date=' + todate + '&show-tags=series&order-by=oldest&format=json&show-fields=shortUrl,thumbnail&callback=?',
+        $.getJSON('http://content.guardianapis.com/search?page=' + control.page + '&tag=' + filtertag + '&from-date=' + fromdate + '&to-date=' + todate + '&show-tags=series&order-by=oldest&format=json&show-fields=shortUrl,thumbnail&callback=?',
             //  TODO: add error checking to this response
             function(json) {
                 for (var i in json.response.results) {
@@ -92,7 +92,7 @@ control = {
                 control.pages = json.response.pages;
                 if (control.page < control.pages) {
                     control.page++;
-                    control.fetchVideoFeed();
+                    control.fetchFeed();
                 } else {
                     if (json.response.total == 1) {
                         $('#currentaction h1').html('Done, 1 video');
