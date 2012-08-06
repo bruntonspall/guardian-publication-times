@@ -141,14 +141,17 @@ control = {
         }
 
         th.append(dtime);
-        if ('thumbnail' in json.fields) 
-	        var i = $('<img>').addClass('thumbnail').attr('src', json.fields.thumbnail).attr('title', d[0] + ':' + d[1]);
-	        th.append(i);
-    	}
+        if ('thumbnail' in json.fields) {
+            var i = $('<img>')
+                .addClass('thumbnail')
+                .attr('src', json.fields.thumbnail)
+                .attr('title', d[0] + ':' + d[1])
+                .attr('style', '');
+            th.append(i);
+        }
         th.append(dsection);
 
         $($('#week .dayholder')[dow.getDay()]).children('.fullday').append(th);
-        i.attr('style', '');
 
 
     },
