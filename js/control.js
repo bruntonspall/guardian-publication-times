@@ -6,7 +6,8 @@ control = {
     pages: null,
 
 	init: function() {
-		
+		control.page = 1;
+        $('.fullday').empty();
 		$('#currentaction h1').html('Fetching recent article');
 
         //  I know getting the date for today is easy, but I want to know what
@@ -28,10 +29,6 @@ control = {
 
                 //  Now add the dates onto the top of each row
                 control.displayDates();
-
-                //  Now grab the video that has been published during that time.
-                control.fetchFeed();
-
             }
         );
 

@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
     <link href='http://fonts.googleapis.com/css?family=Quantico:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/main.css?v=1.2">
+    <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.20.custom.css" rel="stylesheet" />  
+
 </head>
 
 <body>
@@ -23,12 +25,13 @@
         <div class="content">
 
             <div id='currentaction' class='hero-unit'>
-                <h1>Guardian Publication Times</h1>
+                <h1>Guardian Publication Times2</h1>
             </div>
 
-            <div id='topfeedback' class='well'>
+            <div class='well'>
+              <input id='tagselect' type='text' class='span4'></input>
+              <p id="topfeedback" />
             </div>
-
             <div id='week' class="row">
                 <div class='span2 dayholder'>
                     <h1>Sun</h1>
@@ -283,18 +286,36 @@
 
 
             <footer>
-                <p>&copy; revdancatt/the guardian 2012</p>
+                <p>&copy; <a href="http://github.com/bruntonspall">bruntonspall</a> + <a href="http://github.com/revdancatt">revdancatt</a>/the guardian 2012</p>
             </footer>
         
         </div>
                             </div>
 
     <script src="js/jquery-1.7.2.min.js"></script>
+    <script src="js/jquery-ui-1.8.20.custom.min.js"></script>
     <script src="js/control.js?v=1.2"></script>
     <script>
+        getTags = function(req, resp) {
+          $.getJSON('http://content.guardianapis.com/tags.json?callback=?&type=tone,type,publication,series&q='+req.term, function(data) {
+            resp($.map(data.response.results, function(i) {
+              return {label: i.webTitle+' ('+i.id+') ['+i.type+']', value: i.id};
+            }));
+          })
+        };
         var filtertag = 'tone/features';
         $(document).ready(function() {
             control.init();
+            $('#tagselect').autocomplete({
+              source: getTags,
+              select: function(ev, ui) {
+                console.log(ev);
+                console.log(ui);
+                filtertag = ui.item.value;
+                control.init();
+                control.fetchFeed();
+              }
+            })
         });
     </script>
 </body>
