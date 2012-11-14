@@ -323,7 +323,7 @@
         var filtertag = '(theguardian/mainsection/topstories|theguardian/guardianreview|theguardian/weekend/features2|theguardian/money/money|theguardian/theguide/features|theguardian/travel|theguardian/family/family|theguardian/theguide/features|theguardian/mainsection/topstories),-tone/review';
         $(document).ready(function() {
           utils.log("Initialising");
-            //$('#tagselect').val(filtertag);
+            $('#tagselect').val(filtertag);
             control.init(prefix);
             $('#tagselect').autocomplete({
               source: getTags,
@@ -337,7 +337,7 @@
                 control.init();
                 var params = {}
                 if ($('#apikey').val()) params['api-key'] = $('#apikey').val();
-                if ($('#tagselect').val()) params['tag'] = $('#tagselect').val();
+                filtertag = $('#tagselect').val();
                 params['content-set'] = 'print-sent';
                 // params['show-fields'] = 'scheduled-launch-date';
                 params['use-date'] = 'scheduled-launch';
