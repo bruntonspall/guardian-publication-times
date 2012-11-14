@@ -17,12 +17,10 @@ control = {
             //  TODO: add error checking to this response
             function(json) {
                 //  extract the year, month, day part of the webPublicationDate
-                var d = json.response.results[0].webPublicationDate.split('T')[0].split('-');
-                //  convert it into a proper date object
-                d = new Date(parseInt(d[0],10), parseInt(d[1],10)-1, parseInt(d[2],10));
+                var d = new Date(json.response.results[0].webPublicationDate);
                 //  work back to the first day of the week (and just for utility the end of the week)
-                control.startOfWeek = new Date(d.getTime());
-                control.endOfWeek = new Date(control.startOfWeek.getTime() + (1000*60*60*24*7));
+                control.startOfWeek = d;
+                control.endOfWeek = new Date(d.getTime() + (1000*60*60*24*7));
 
                 //  Stupidly long way to display the week we are currently looking at
                 $('#topfeedback').html(filtertag + ' published in the week ' + control.startOfWeek.toString().split('00:00:00')[0] + ' - ' + new Date(control.endOfWeek.getTime() - 1000).toString().split('23:59:59')[0]);
@@ -76,12 +74,11 @@ control = {
     //  this is going to start at the first day and loop over until
     //  we've put all the dates at the top of each day column
     displayDates: function() {
-        
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         var d = null;
         for (var i = 0; i < 7; i++) {
             d = new Date(this.startOfWeek.getTime() + (1000*60*60*24*i));
-            d = d.toString().split(' ');
-            $($('#week .dayholder')[i]).children('h6').html(d[2] + ' ' + d[1]);
+            $($('#week .dayholder')[d.getDay()]).children('h6').html(d.getDate() + ' ' + months[d.getMonth()]);
         }
 
     },
@@ -169,7 +166,7 @@ control = {
         }
         th.append(dsection);
 
-        $($('#week .dayholder')[d.getDay()]).children('.fullday').append(th);
+        $($('#week .dayholder')[d.getDay()%7]).children('.fullday').append(th);
 
 
     },
