@@ -5,15 +5,15 @@ control = {
     page: 1,
     pages: null,
 
-	init: function() {
+	init: function(prefix) {
 		control.page = 1;
         $('.fullday').empty();
 		$('#currentaction h1').html('Fetching recent article');
-
+        var url = prefix || "http://content.guardianapis.com/";
         //  I know getting the date for today is easy, but I want to know what
         //  the Guardian thinks the date is, and I'll do this by getting the most recent
         //  article and then we can work it out from that
-        $.getJSON("http://content.guardianapis.com/search?page-size=1&format=json&callback=?",
+        $.getJSON(url+'search.json?page-size=1&callback=?',
             //  TODO: add error checking to this response
             function(json) {
                 //  extract the year, month, day part of the webPublicationDate
@@ -21,7 +21,7 @@ control = {
                 //  convert it into a proper date object
                 d = new Date(parseInt(d[0],10), parseInt(d[1],10)-1, parseInt(d[2],10));
                 //  work back to the first day of the week (and just for utility the end of the week)
-                control.startOfWeek = new Date(d.getTime() - (1000*60*60*24*d.getDay()) - (1000*60*60*24*7));
+                control.startOfWeek = new Date(d.getTime());
                 control.endOfWeek = new Date(control.startOfWeek.getTime() + (1000*60*60*24*7));
 
                 //  Stupidly long way to display the week we are currently looking at
@@ -86,8 +86,9 @@ control = {
 
     },
 
-    fetchFeed: function() {
-
+    fetchFeed: function(apiurl, params) {
+        apiurl = apiurl || "http://content.guardianapis.com/";
+        params = params || {};
         if (this.pages === null) {
             $('#currentaction h1').html('Counting ' + filtertag);
         } else {
@@ -96,7 +97,17 @@ control = {
 
         var fromdate = (control.startOfWeek.getYear() + 1900) + '-' + (control.startOfWeek.getMonth()+1) + '-' + control.startOfWeek.getDate();
         var todate = (control.endOfWeek.getYear() + 1900) + '-' + (control.endOfWeek.getMonth()+1) + '-' + control.endOfWeek.getDate();
-        $.getJSON('http://content.guardianapis.com/search?page=' + control.page + '&tag=' + filtertag + '&from-date=' + fromdate + '&to-date=' + todate + '&show-tags=series&order-by=oldest&format=json&show-fields=shortUrl,thumbnail&callback=?',
+        params["page"] = control.page;
+        params["tag"] = filtertag;
+        params["from-date"] = fromdate;
+        params["to-date"] = todate;
+        params["show-tags"] = "series";
+        params["order-by"] = "oldest";
+        params["format"]="json";
+        params["show-fields"]="shortUrl,thumbnail,scheduled-launch-date";
+        url = utils.url(apiurl+'search', params);
+        utils.log("Fetching from "+url);
+        $.getJSON(url+'&callback=?',
             //  TODO: add error checking to this response
             function(json) {
                 for (var i in json.response.results) {
@@ -107,7 +118,7 @@ control = {
                 control.pages = json.response.pages;
                 if (control.page < control.pages) {
                     control.page++;
-                    control.fetchFeed();
+                    control.fetchFeed(apiurl, params);
                 } else {
                     if (json.response.total == 1) {
                         $('#currentaction h1').html('Done, 1 video');
@@ -123,19 +134,13 @@ control = {
     },
 
     plotVideo: function(json) {
-        //  Ok, now we want to get the publish date of each video, same as before...
-        var d = json.webPublicationDate.split('T')[0].split('-');
-        var dow = new Date(parseInt(d[0],10), parseInt(d[1],10)-1, parseInt(d[2],10));
-
-        //  and the time, at some point timezones will get thrown into the mix
-        //  we're just going to ignore that for the moment because timezones suck
-        //  and they can mess around with the time (and we're not *that* fussed about
-        //  being spot-on)
-        d = json.webPublicationDate.split('T')[1].split('Z')[0].split(':');
-        var tod = parseInt(d[0]*60,10) + parseInt(d[1],10);
+        // Ok, now we want to get the scheduled publish date of each video, same as before...
+        var contentDate = json.fields.scheduledLaunchDate;
+        // The API currently does not return ISO dates for scheduled-date
+        // This will be fixed pretty soon, but new Date(string) should parse both
+        var d = new Date(contentDate);
+        var tod = parseInt(d.getHours()*60,10) + parseInt(d.getMinutes(),10);
         var todpos = utils.timetopixel(tod);
-        // for (h = 0; h < tod/60; ++h)
-        //     todpos += utils.ease(h,0,10,18,24)*90;
 
         todpos+=15;
 
@@ -145,7 +150,7 @@ control = {
             .addClass('section_' + json.sectionId)
             .css('top', todpos-12)
             .attr('href', 'http://www.guardian.co.uk/'+json.id);
-        var dtime = $('<div>').addClass('time').addClass('tinyfont').html(d[0] + ':' + d[1]);
+        var dtime = $('<div>').addClass('time').addClass('tinyfont').html(d.getHours() + ':' + d.getMinutes());
         var dsection = $('<div>').addClass('sectionname').addClass('tinyfont').html(json.sectionName);
 
         if (json.tags.length > 0) {
@@ -158,13 +163,13 @@ control = {
             var i = $('<img>')
                 .addClass('thumbnail')
                 .attr('src', json.fields.thumbnail)
-                .attr('title', d[0] + ':' + d[1])
+                .attr('title', d.getHours() + ':' + d.getMinutes())
                 .attr('style', '');
             th.append(i);
         }
         th.append(dsection);
 
-        $($('#week .dayholder')[dow.getDay()]).children('.fullday').append(th);
+        $($('#week .dayholder')[d.getDay()]).children('.fullday').append(th);
 
 
     },
@@ -187,7 +192,19 @@ control = {
 };
 
 utils = {
-	
+	url: function(location, params) {
+        var s = location;
+        var count = 0;
+        for (var k in params) {
+            if (!params.hasOwnProperty(k)) continue;
+            if (count === 0) { s += '?'; } else { s += '&'; }
+            count++;
+            s += k;
+            s += '=';
+            s += encodeURIComponent(params[k]);
+        }
+        return s;
+    },
 	log: function(msg) {
 		try {
 			console.log(msg);
